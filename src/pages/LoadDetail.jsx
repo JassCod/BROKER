@@ -97,7 +97,7 @@ export default function LoadDetail() {
               </div>
               {load.status === 'open' && role === 'carrier' && (
                 <div className="row">
-                  <button className="btn btn-primary" onClick={() => { bookNow(load); toast(`Booked ${load.ref} at ${aud(load.targetRate)}`); }}>Book now at {aud(load.targetRate)}</button>
+                  <button className="btn btn-primary" onClick={async () => { if (await bookNow(load)) toast(`Booked ${load.ref} at ${aud(load.targetRate)}`); }}>Book now at {aud(load.targetRate)}</button>
                   <button className="btn" onClick={() => setQuoting(load)}>Counter-quote</button>
                 </div>
               )}

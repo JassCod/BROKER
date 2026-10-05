@@ -6,7 +6,7 @@ import { CITIES, STATES, aud, auDate, cityByName, equipmentById } from '../lib/a
 import { Stars, Tilt } from './fx.jsx';
 
 export function Nav() {
-  const { state, role, setSession } = useStore();
+  const { state, role, me, live, setSession, logout } = useStore();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
@@ -29,39 +29,63 @@ export function Nav() {
         <NavLink to="/guide">Guide</NavLink>
       </div>
       <div className="role-switch">
-        <select
-          aria-label="Acting as"
-          value={value}
-          onChange={(e) => {
-            const [r, id] = e.target.value.split(':');
-            setSession(r, id);
-          }}
-        >
-          <optgroup label="Shippers">
-            {state.shippers.map((s) => (
-              <option key={s.id} value={`shipper:${s.id}`}>
-                Shipper · {s.name}
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="Carriers">
-            {state.carriers.map((c) => (
-              <option key={c.id} value={`carrier:${c.id}`}>
-                Carrier · {c.name}
-              </option>
-            ))}
-          </optgroup>
-        </select>
-        <Link to="/join" className="btn btn-primary btn-sm">
-          Join free
-        </Link>
+        {live ? (
+          me ? (
+            <>
+              <span className="small muted" title={`Logged in as ${me.name}`} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {role === 'carrier' ? 'Carrier' : 'Shipper'} · {me.name}
+              </span>
+              <button className="btn btn-sm" onClick={logout}>
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="btn btn-sm">
+                Log in
+              </Link>
+              <Link to="/join" className="btn btn-primary btn-sm">
+                Join free
+              </Link>
+            </>
+          )
+        ) : (
+          <>
+            <select
+              aria-label="Acting as"
+              value={value}
+              onChange={(e) => {
+                const [r, id] = e.target.value.split(':');
+                setSession(r, id);
+              }}
+            >
+              <optgroup label="Shippers">
+                {state.shippers.map((s) => (
+                  <option key={s.id} value={`shipper:${s.id}`}>
+                    Shipper · {s.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Carriers">
+                {state.carriers.map((c) => (
+                  <option key={c.id} value={`carrier:${c.id}`}>
+                    Carrier · {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            <Link to="/join" className="btn btn-primary btn-sm">
+              Join free
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
 }
 
 export function Footer() {
-  const { reset, toast } = useStore();
+  const { reset, toast, live } = useStore();
   return (
     <footer className="footer">
       <div className="container">
@@ -75,7 +99,7 @@ export function Footer() {
               Australia’s digital freight exchange. Australian shippers, Australian carriers, ABN-verified and NHVR-aware.
             </p>
             <p className="dim small">
-              Prices in AUD. GST is shown separately. Demo build: every company and figure is fictitious.
+              Prices in AUD. GST is shown separately. {live ? 'Sample companies are fictitious.' : 'Demo build: every company and figure is fictitious.'}
             </p>
           </div>
           <div>
@@ -96,6 +120,7 @@ export function Footer() {
             <Link to="/guide#compliance">Compliance guide</Link>
             <Link to="/guide#faq">FAQ</Link>
             <Link to="/dashboard">Dashboard</Link>
+            {!live && (
             <a
               href="#reset"
               onClick={(e) => {
@@ -106,6 +131,7 @@ export function Footer() {
             >
               Reset demo data
             </a>
+            )}
           </div>
         </div>
         <div className="row between" style={{ marginTop: 36, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
@@ -225,10 +251,10 @@ export function Lane({ from, to, km }) {
 }
 
 export function LoadCard({ load, km, children, invited }) {
-  const { shipper, quotesFor } = useStore();
+  const { shipper, quoteCount } = useStore();
   const eq = equipmentById(load.equipment);
   const s = shipper(load.shipperId);
-  const bids = quotesFor(load.id).length;
+  const bids = quoteCount(load);
   return (
     <Tilt className="load-card" max={4}>
       <div className="row between">

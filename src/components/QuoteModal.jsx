@@ -29,10 +29,10 @@ export default function QuoteModal({ load, onClose }) {
         <form
           className="stack"
           style={{ gap: 16 }}
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             if (!valid) return;
-            submitQuote(load.id, n, message, eta);
+            if (!(await submitQuote(load.id, n, message, eta))) return;
             toast(`Quote of ${aud(n)} sent to shipper`);
             onClose();
           }}

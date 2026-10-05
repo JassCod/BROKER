@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from '../lib/store.jsx';
 import { EQUIPMENT, GST_RATE, aud, cityByName, equipmentById, estimateRate, routeWarnings } from '../lib/au.js';
@@ -11,7 +11,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const plusDays = (d, n) => new Date(new Date(d).getTime() + n * 86400000).toISOString().slice(0, 10);
 
 export default function PostLoad() {
-  const { state, role, me, setSession, postLoad, toast } = useStore();
+  const { state, role, me, live, setSession, postLoad, toast } = useStore();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
@@ -70,10 +70,22 @@ export default function PostLoad() {
       <div className="page container">
         <div className="glass empty stack" style={{ alignItems: 'center' }}>
           <h2 className="h3">Posting loads is for shippers</h2>
-          <p>You’re signed in as a carrier. Switch to a shipper account to post freight.</p>
-          <button className="btn btn-primary" onClick={() => setSession('shipper', state.shippers[0].id)}>
-            Switch to {state.shippers[0].name}
-          </button>
+          {live ? (
+            <>
+              <p style={{ margin: 0 }}>{me ? 'You’re logged in as a carrier.' : 'Log in with a shipper account to post freight.'}</p>
+              <div className="row">
+                <Link to="/login" className="btn btn-primary">Log in</Link>
+                <Link to="/join" className="btn">Create a shipper account</Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ margin: 0 }}>You’re signed in as a carrier. Switch to a shipper account to post freight.</p>
+              <button className="btn btn-primary" onClick={() => setSession('shipper', state.shippers[0].id)}>
+                Switch to {state.shippers[0].name}
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
@@ -86,9 +98,9 @@ export default function PostLoad() {
       setStep((s) => Math.min(3, s + 1));
     }
   };
-  const submit = () => {
+  const submit = async () => {
     if (Object.keys(errors).length) return;
-    const l = postLoad({
+    const l = await postLoad({
       origin: o.name,
       destination: d.name,
       pickupDate: f.pickupDate,
@@ -102,6 +114,7 @@ export default function PostLoad() {
       invitedCarrierIds: f.visibility === 'private' ? f.invitedCarrierIds : [],
       targetRate: rate,
     });
+    if (!l) return;
     toast(f.visibility === 'private' ? `${l.ref} sent to ${f.invitedCarrierIds.length} selected carrier(s)` : `${l.ref} is live on the load board`);
     navigate('/dashboard');
   };

@@ -119,8 +119,8 @@ export function Carriers() {
               key={l.id}
               className="btn"
               style={{ justifyContent: 'space-between' }}
-              onClick={() => {
-                invite(l.id, selected);
+              onClick={async () => {
+                if (!(await invite(l.id, selected))) return;
                 toast(`${selected.length} carrier${selected.length > 1 ? 's' : ''} invited to ${l.ref}`);
                 setSelected([]);
                 setPicking(false);

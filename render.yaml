@@ -1,0 +1,18 @@
+# Render Blueprint: website + API in one Docker service with a persistent disk for the database.
+# Persistent disks need a paid Render instance type.
+services:
+  - type: web
+    name: roadtrain
+    runtime: docker
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO
+        value: "true"
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

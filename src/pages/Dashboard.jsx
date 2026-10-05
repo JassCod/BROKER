@@ -147,9 +147,8 @@ function ShipperDash() {
                             <div className="row">
                               <button
                                 className="btn btn-sm btn-primary"
-                                onClick={() => {
-                                  acceptQuote(q.id);
-                                  toast(`Booked ${c.name} for ${l.ref} at ${aud(q.amount)}`);
+                                onClick={async () => {
+                                  if (await acceptQuote(q.id)) toast(`Booked ${c.name} for ${l.ref} at ${aud(q.amount)}`);
                                 }}
                               >
                                 Accept & book
@@ -182,9 +181,8 @@ function ShipperDash() {
               {l.status === 'open' && (
                 <button
                   className="btn btn-sm btn-danger"
-                  onClick={() => {
-                    cancel(l.id);
-                    toast(`${l.ref} cancelled`, 'warn');
+                  onClick={async () => {
+                    if (await cancel(l.id)) toast(`${l.ref} cancelled`, 'warn');
                   }}
                 >
                   Cancel
@@ -296,9 +294,8 @@ function CarrierDash() {
             l.status === 'booked' ? (
               <button
                 className="btn btn-sm btn-primary"
-                onClick={() => {
-                  pickup(l.id);
-                  toast(`${l.ref} picked up. Tracking is live.`);
+                onClick={async () => {
+                  if (await pickup(l.id)) toast(`${l.ref} picked up. Tracking is live.`);
                 }}
               >
                 Confirm pickup
@@ -322,10 +319,10 @@ function CarrierDash() {
       <Modal open={!!podFor} onClose={() => setPodFor(null)} title={`Proof of delivery · ${podFor?.ref || ''}`}>
         <form
           className="stack"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
             if (!podName.trim()) return;
-            deliver(podFor.id, { receivedBy: podName.trim(), at: Date.now() });
+            if (!(await deliver(podFor.id, { receivedBy: podName.trim(), at: Date.now() }))) return;
             toast(`${podFor.ref} delivered. Quick-pay is queued for 2 business days.`);
             setPodFor(null);
             setPodName('');
@@ -347,7 +344,20 @@ function CarrierDash() {
 
 export default function Dashboard() {
   const { role, me } = useStore();
-  if (!me) return null;
+  if (!me) {
+    return (
+      <div className="page container">
+        <div className="glass empty stack" style={{ alignItems: 'center' }}>
+          <h2 className="h3">Log in to see your dashboard</h2>
+          <p style={{ margin: 0 }}>Your loads, quotes and jobs live here.</p>
+          <div className="row">
+            <Link to="/login" className="btn btn-primary">Log in</Link>
+            <Link to="/join" className="btn">Create an account</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="page">
       <div className="container">

@@ -6,10 +6,10 @@ import { Reveal, Tilt } from '../components/fx.jsx';
 
 export default function Join() {
   const [params] = useSearchParams();
-  const { register, toast } = useStore();
+  const { register, toast, live } = useStore();
   const navigate = useNavigate();
   const [role, setRole] = useState(params.get('role') === 'carrier' ? 'carrier' : 'shipper');
-  const [f, setF] = useState({ name: '', abn: '', state: 'NSW', city: '', postcode: '', contact: '', phone: '', email: '', fleet: 5, equipment: [], nhvas: false, insuredM: 10, confirm: false });
+  const [f, setF] = useState({ name: '', abn: '', state: 'NSW', city: '', postcode: '', contact: '', phone: '', email: '', password: '', fleet: 5, equipment: [], nhvas: false, insuredM: 10, confirm: false });
   const [touched, setTouched] = useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
@@ -21,6 +21,7 @@ export default function Join() {
   if (f.contact.trim().length < 2) errors.contact = 'Enter a contact name';
   if (!isValidAUPhone(f.phone)) errors.phone = 'Use an Australian number, e.g. 0412 345 678 or 02 9876 5432';
   if (!/^\S+@\S+\.\S+$/.test(f.email)) errors.email = 'Enter a valid email';
+  if (live && f.password.length < 8) errors.password = 'Use at least 8 characters';
   if (role === 'carrier' && !f.equipment.length) errors.equipment = 'Select at least one equipment type';
   if (role === 'carrier' && !(Number(f.fleet) >= 1)) errors.fleet = 'Fleet size must be at least 1';
   if (!f.confirm) errors.confirm = 'Roadtrain is only for Australian businesses';
@@ -34,16 +35,17 @@ export default function Join() {
     </div>
   );
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setTouched(true);
     if (Object.keys(errors).length) return;
-    const base = { name: f.name.trim(), abn: formatABN(f.abn), state: f.state, city: f.city, postcode: f.postcode, contact: f.contact.trim(), phone: f.phone.trim(), email: f.email.trim() };
+    const base = { name: f.name.trim(), abn: formatABN(f.abn), state: f.state, city: f.city, postcode: f.postcode, contact: f.contact.trim(), phone: f.phone.trim(), email: f.email.trim(), password: f.password, confirm: f.confirm };
     const company =
       role === 'carrier'
-        ? register('carrier', { ...base, fleet: Number(f.fleet), equipment: f.equipment, nhvas: f.nhvas, insuredM: Number(f.insuredM), about: `${f.city}-based carrier.` })
-        : register('shipper', base);
-    toast(`Welcome aboard, ${company.name}! ABN checksum passed. ABR lookup is pending.`);
+        ? await register('carrier', { ...base, fleet: Number(f.fleet), equipment: f.equipment, nhvas: f.nhvas, insuredM: Number(f.insuredM), about: `${f.city}-based carrier.` })
+        : await register('shipper', base);
+    if (!company) return;
+    toast(`Welcome aboard, ${company.name}! Your ABN passed the checksum. Registry verification is pending.`);
     navigate(role === 'carrier' ? '/loads' : '/post');
   };
 
@@ -120,8 +122,13 @@ export default function Join() {
             </div>
             <div className="grid grid-2">
               {input('phone', 'Phone (Australian)', { type: 'tel', placeholder: '0412 345 678' })}
-              {input('email', 'Work email', { type: 'email' })}
+              {input('email', 'Work email', { type: 'email', autoComplete: 'email' })}
             </div>
+            {live && (
+              <div className="grid grid-2">
+                {input('password', 'Password (8+ characters)', { type: 'password', autoComplete: 'new-password' })}
+              </div>
+            )}
 
             {role === 'carrier' && (
               <>

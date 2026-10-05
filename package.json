@@ -5,14 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:live": "VITE_API_URL=/api vite",
+    "build:live": "VITE_API_URL=/api vite build",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/lib/*.test.js"
+    "test": "node --test --no-warnings src/lib/*.test.js server/*.test.js",
+    "start": "node --no-warnings server/index.js",
+    "dev:api": "node --no-warnings --watch server/index.js"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
     "@react-three/postprocessing": "^3.1.3",
+    "express": "^5.2.1",
     "framer-motion": "^14.0.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

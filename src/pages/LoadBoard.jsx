@@ -8,7 +8,7 @@ import { Reveal } from '../components/fx.jsx';
 import QuoteModal from '../components/QuoteModal.jsx';
 
 export default function LoadBoard() {
-  const { state, role, me, bookNow, toast } = useStore();
+  const { state, role, me, live, bookNow, toast } = useStore();
   const [params] = useSearchParams();
   const [q, setQ] = useState('');
   const [fromState, setFromState] = useState('');
@@ -67,7 +67,7 @@ export default function LoadBoard() {
             {rows.length} open loads <span className="gradient-text">across Australia</span>
           </h1>
           <p className="lead">
-            Filter by lane, equipment and rate per km. {role === 'carrier' ? 'Quote, or book instantly at the posted rate.' : 'Switch to a carrier in the menu to quote or book.'}
+            Filter by lane, equipment and rate per km. {role === 'carrier' ? 'Quote, or book instantly at the posted rate.' : live ? 'Log in as a carrier to quote or book.' : 'Switch to a carrier in the menu to quote or book.'}
           </p>
         </Reveal>
 
@@ -145,9 +145,8 @@ export default function LoadBoard() {
                         </button>
                         <button
                           className="btn btn-sm btn-primary"
-                          onClick={() => {
-                            bookNow(load);
-                            toast(`Booked ${load.ref} at ${aud(load.targetRate)}. See your dashboard.`);
+                          onClick={async () => {
+                            if (await bookNow(load)) toast(`Booked ${load.ref} at ${aud(load.targetRate)}. See your dashboard.`);
                           }}
                         >
                           Book now

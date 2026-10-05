@@ -7,4 +7,6 @@ export default defineConfig({
   base: './',
   // three.js is lazy-loaded with the 3D scenes; it is large by nature.
   build: { chunkSizeWarningLimit: 1200 },
+  // `npm run dev:live` sends /api calls to the local API server.
+  server: { proxy: { '/api': 'http://localhost:8080' } },
 });

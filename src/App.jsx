@@ -11,6 +11,7 @@ import Track from './pages/Track.jsx';
 import Join from './pages/Join.jsx';
 import LoadDetail from './pages/LoadDetail.jsx';
 import Guide from './pages/Guide.jsx';
+import Login from './pages/Login.jsx';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/track" element={<Track />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/login" element={<Login />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
