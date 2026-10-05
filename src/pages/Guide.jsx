@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Reveal, Tilt } from '../components/fx.jsx';
 import { EQUIPMENT, FERRY_SURCHARGE, FUEL_LEVY, MIN_CHARGE } from '../lib/au.js';
@@ -131,6 +131,7 @@ function Faq() {
 
 export default function Guide() {
   const [active, setActive] = useState('overview');
+  const { hash } = useLocation();
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
@@ -140,9 +141,11 @@ export default function Guide() {
       const el = document.getElementById(id);
       if (el) obs.observe(el);
     });
-    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
     return () => obs.disconnect();
   }, []);
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
 
   return (
     <div className="page">
@@ -161,7 +164,7 @@ export default function Guide() {
         <div className="guide-layout">
           <nav className="glass guide-toc" aria-label="Guide sections">
             {SECTIONS.map(([id, label]) => (
-              <a key={id} href={`#${id}`} className={active === id ? 'on' : ''} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); history.replaceState(null, '', `#${id}`); }}>
+              <a key={id} href={`#${id}`} className={active === id ? 'on' : ''} onClick={(e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); }}>
                 {label}
               </a>
             ))}
